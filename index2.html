@@ -12,16 +12,30 @@
 #q4-fast-results a,#q4-fast-results summary{display:inline-flex;align-items:center;min-height:44px;margin-right:12px;color:#103448;font-weight:600}
 #q4-fast-results summary{display:list-item;width:fit-content;line-height:44px;cursor:pointer}
 #q4-fast-results summary:focus-visible,#q4-fast-results a:focus-visible{outline:2px solid #103448;outline-offset:2px}
+[hidden]{display:none!important}fieldset{margin:16px 0 0;padding:0;border:0;min-width:0}legend{font-weight:650}input,select{min-width:0}.two>*{min-width:0}.balance{background:#103448;color:white;border-radius:14px;padding:16px 20px}.balance small,.figures small{display:block}.balance strong{display:block;font-size:32px;margin-top:4px}.figures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:18px 0}.figures small{color:#536d79}.figures strong{font-size:20px}.form-status:empty{display:none}.form-status{color:#185b42}.form-status.bad{color:#922e25}#app details{margin-top:12px}summary{cursor:pointer;min-height:40px;padding:9px 0;font-weight:650}.payments{list-style:none;padding:0}.payments li{padding:9px 0;border-top:1px solid #d8e5ea}.payments time{margin-right:12px}#filter{min-height:44px;width:100%;padding:8px;font:inherit;border-radius:10px;border:1px solid #b6ccd6;color:inherit;background:white}.place{white-space:normal;min-width:140px;text-align:left}.place small{display:block;color:#536d79}.maplink{display:inline-block;color:#155f7b;font-weight:650;padding:10px 0}#q4-fast-results button{display:block;margin:8px 0}#q4-fast-form button{margin:0 5px 5px 0}
 </style>
 </head>
 <body><header><h1>🔋 Ricariche Q4</h1><p>Registro condiviso delle ricariche di Francesca</p></header>
 <main class="wrap">
-<div id="status" class="notice">Connessione in corso…</div>
+<div role="status" id="status" class="notice">Connessione in corso…</div>
 <section id="authbox" class="card hide"><h2 id="auth-title">Accedi</h2><p class="muted">Usa l'email invitata su Supabase. I dati saranno visibili solo agli account autorizzati.</p>
 <form id="loginform"><label for="email">Email</label><input id="email" type="email" required autocomplete="email"><label for="password">Password</label><input id="password" type="password" required minlength="6" autocomplete="current-password"><div class="row" style="margin-top:18px"><button type="submit" id="loginBtn">Accedi</button><button type="button" id="forgot" class="secondary">Imposta / recupera password</button></div></form>
 <form id="setpassform" class="hide"><p>Imposta una password nuova per accedere all'app.</p><label for="newpass">Nuova password (almeno 8 caratteri)</label><input id="newpass" type="password" minlength="8" required autocomplete="new-password"><button type="submit" style="margin-top:15px">Salva password</button></form>
 </section>
 <div id="app" class="hide"><section class="card"><div class="row"><div><strong>Accesso effettuato</strong><div class="muted" id="useremail"></div></div><button id="logout" class="secondary right">Esci</button></div></section>
+<section class="card" aria-labelledby="money-title">
+  <h2 id="money-title">Spese e rimborsi</h2>
+  <div class="balance"><small>Francesca deve ancora a Doriano</small><strong id="due">—</strong></div>
+  <p id="credit" class="muted" hidden></p>
+  <div class="figures"><div><small>Ricariche a casa</small><strong id="homeCost">—</strong></div><div><small>Spese alle colonnine</small><strong id="publicCost">—</strong></div><div><small>Già rimborsato</small><strong id="paid">—</strong></div><div><small>Spesa complessiva auto</small><strong id="sumEuro">—</strong></div></div>
+  <button type="button" id="openRefund" disabled>Registra rimborso</button>
+  <form id="refundForm" hidden><fieldset><legend>Nuovo rimborso</legend>
+    <label for="refundDate">Data del pagamento</label><input id="refundDate" type="date" required>
+    <label for="refundEuro">Importo rimborsato (€)</label><input id="refundEuro" type="text" inputmode="decimal" required placeholder="0,00">
+    <p class="muted" id="refundHint"></p><div class="row"><button id="saveRefund" type="submit">Salva rimborso</button><button type="button" id="closeRefund" class="secondary">Annulla</button></div>
+  </fieldset></form><p id="refundStatus" class="form-status" role="status"></p>
+  <details><summary>Storico dei rimborsi</summary><ul id="payments" class="payments"></ul></details>
+</section>
 <section id="q4-fast" class="card" aria-labelledby="q4-fast-title">
   <h2 id="q4-fast-title">Colonnine rapide vicino a me</h2>
   <p class="muted">DC · CCS Combo 2 · almeno 50 kW</p>
@@ -34,18 +48,32 @@
       <option value="50">50 km</option>
       <option value="100">100 km</option>
     </select>
-    <button type="submit">Cerca con GPS</button>
+    <button type="submit">Cerca con GPS</button><button type="button" id="q4-cancel" class="secondary" hidden>Annulla</button>
   </form>
-  <p class="muted">La posizione viene usata per cercare nel catalogo OpenStreetMap tramite Overpass.</p>
+  <p class="muted">La posizione viene usata per cercare nel catalogo OpenStreetMap tramite Overpass. Se manca il comune, la selezione cerca la località con le coordinate della colonnina su OpenStreetMap.</p>
   <p id="q4-fast-status" role="status"></p>
-  <ol id="q4-fast-results"></ol>
+  <a id="q4-maps" class="maplink" target="_blank" rel="noopener noreferrer" hidden>Cerca colonnine su Mappe</a><p class="muted" id="q4-map-note" hidden>Su Mappe verifica connettore CCS2 e potenza di almeno 50 kW.</p><ol id="q4-fast-results"></ol>
   <small class="muted">Dati © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Disponibilità in tempo reale da verificare nell’app di ricarica.</small>
 </section>
-<section class="card"><h2>Nuova ricarica</h2><form id="chargeform"><label for="date">Data</label><input id="date" type="date" required><label for="km">Km attuali dell'auto (all'inizio della ricarica)</label><input id="km" inputmode="numeric" type="number" min="0" step="1" required placeholder="Es. 485">
+<section class="card" id="publicSection"><h2>Ricarica alla colonnina</h2>
+  <button type="button" id="openPublic" class="secondary">Inserisci una ricarica pubblica</button>
+  <form id="publicForm" hidden><fieldset><legend>Dati della ricarica pubblica</legend>
+    <label for="stationName">Nome della colonnina</label><input id="stationName" maxlength="300" required>
+    <label for="town">Località o indirizzo</label><input id="town" maxlength="500" required>
+    <div class="two"><div><label for="publicDate">Data</label><input id="publicDate" type="date" required></div><div><label for="publicKm">Km auto</label><input id="publicKm" type="number" inputmode="numeric" min="0" max="2147483647" step="1" required></div></div>
+    <div class="two"><div><label for="publicKwh">kWh caricati</label><input id="publicKwh" inputmode="decimal" required placeholder="Es. 25,5"></div><div><label for="publicEuro">Importo pagato (€)</label><input id="publicEuro" inputmode="decimal" required placeholder="Es. 12,75"></div></div>
+    <p class="metric"><small>Prezzo medio al kWh</small><strong id="avg">—</strong></p>
+    <div class="row"><button id="savePublic" type="submit">Salva ricarica pubblica</button><button type="button" id="closePublic" class="secondary">Annulla</button></div>
+  </fieldset></form><p id="publicStatus" class="form-status" role="status"></p>
+</section>
+<section class="card"><h2>Ricarica a casa</h2><form id="chargeform"><fieldset><legend class="hide">Dati della ricarica a casa</legend><label for="date">Data</label><input id="date" type="date" required><label for="km">Km attuali dell'auto (all'inizio della ricarica)</label><input id="km" inputmode="numeric" type="number" min="0" step="1" required placeholder="Es. 485">
 <div class="two"><div><label for="before">Contatore prima (kWh)</label><input id="before" inputmode="decimal" type="text" required placeholder="772,28"></div><div><label for="after">Contatore dopo (kWh)</label><input id="after" inputmode="decimal" type="text" required placeholder="777,28"></div></div>
 <label for="rate">Prezzo energia (€/kWh) — lo decidi tu</label><input id="rate" inputmode="decimal" type="text" required placeholder="Es. 0,32"><div class="metrics"><div class="metric"><small>Totale energia</small><strong id="previewKwh">— kWh</strong></div><div class="metric"><small>Costo ricarica</small><strong id="previewEuro">— €</strong></div></div>
-<div class="row"><button id="save" type="submit">Salva ricarica</button><button type="button" id="clear" class="secondary">Pulisci campi</button></div></form></section>
-<section class="card"><h2>Storico condiviso</h2><div class="total"><div class="metric"><small>Ricariche</small><strong id="count">0</strong></div><div class="metric"><small>kWh totali</small><strong id="sumKwh">0</strong></div><div class="metric"><small>Spesa totale</small><strong id="sumEuro">0 €</strong></div></div><p class="muted">Le ricariche sono salvate online su Supabase e consultabili da entrambi gli iPhone.</p><div class="scroll"><table><thead><tr><th>Data</th><th>Km auto</th><th>Prima</th><th>Dopo</th><th>kWh</th><th>€/kWh</th><th>Totale</th><th></th></tr></thead><tbody id="history"></tbody></table></div><div class="row" style="margin-top:16px"><button id="refresh" class="secondary">Aggiorna storico</button><button id="export" class="secondary">Esporta CSV</button></div><p class="footer">Le ricariche registrate nella vecchia versione dell'app sono rimaste nel browser originale: non vengono trasferite automaticamente. Esportale prima di cancellare i dati del browser.</p></section></div>
+<div class="row"><button id="save" type="submit">Salva ricarica</button><button type="button" id="clear" class="secondary">Pulisci campi</button></div></fieldset></form><p id="homeStatus" class="form-status" role="status"></p></section>
+<section class="card"><h2>Storico condiviso</h2>
+<label for="filter">Mostra ricariche</label><select id="filter"><option value="tutte">Tutte</option><option value="casa">Casa</option><option value="colonnina">Colonnine</option></select>
+<p class="muted" id="historyCount"></p><div class="scroll"><table><thead><tr><th>Data</th><th>Tipo / luogo</th><th>Km auto</th><th>Prima</th><th>Dopo</th><th>kWh</th><th>€/kWh</th><th>Totale</th><th></th></tr></thead><tbody id="history"></tbody></table></div><div class="row" style="margin-top:16px"><button id="refresh" class="secondary">Aggiorna storico</button><button id="export" class="secondary">Esporta CSV</button></div>
+<p class="footer">Le ricariche registrate nella vecchia versione dell'app sono rimaste nel browser originale: non vengono trasferite automaticamente. Esportale prima di cancellare i dati del browser.</p></section></div>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
@@ -53,22 +81,307 @@
 const URL='https://xjogtfqntmcaerjuclaw.supabase.co';
 const KEY='sb_publishable_T6_LsUr31mqNDUt4R8xZHg_1R0f-Xj6';
 const $=id=>document.getElementById(id), fmt=(v,d=2)=>Number(v).toLocaleString('it-IT',{minimumFractionDigits:d,maximumFractionDigits:d}), number=v=>{const x=String(v||'').trim().replace(/\s/g,'').replace(',','.');return x===''?NaN:Number(x)},iso=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-let db,session=null,rows=[],recovery=false,waiting=false;
-function message(str,err=false){$('status').textContent=str;$('status').className='notice'+(err?' error':'')}
-function errorString(e){return e?.message||String(e)}
-function show(){const signed=!!session?.user;$('authbox').classList.toggle('hide',signed&&!recovery);$('app').classList.toggle('hide',!signed||recovery);$('loginform').classList.toggle('hide',recovery);$('setpassform').classList.toggle('hide',!recovery);$('auth-title').textContent=recovery?'Imposta password':'Accedi';$('useremail').textContent=session?.user?.email||'';if(signed&&!recovery)load()}
-async function load(){if(!session)return;const {data,error}=await db.from('ricariche_q4').select('id,data,km_auto,contatore_prima,contatore_dopo,prezzo_kwh,totale_kwh,totale_euro').order('data',{ascending:false}).order('created_at',{ascending:false}).limit(1000);if(error){message('Impossibile leggere lo storico: '+errorString(error)+'. Verifica che entrambi gli account siano autorizzati nella tabella utenti_q4.',true);return}rows=data||[];render();message('✅ App connessa. Storico online aggiornato.')}
-function render(){let k=0,c=0;const tb=$('history');tb.replaceChildren();for(const r of rows){k+=Number(r.totale_kwh);c+=Number(r.totale_euro);const tr=document.createElement('tr');for(const val of [r.data?.split('-').reverse().join('/')||'',r.km_auto,fmt(r.contatore_prima),fmt(r.contatore_dopo),fmt(r.totale_kwh),fmt(r.prezzo_kwh,4),fmt(r.totale_euro)+' €']){const td=document.createElement('td');td.textContent=val;tr.append(td)}const td=document.createElement('td'),btn=document.createElement('button');btn.className='danger sm';btn.textContent='Elimina';btn.onclick=async()=>{if(!confirm('Eliminare questa ricarica dallo storico condiviso?'))return;const {error}=await db.from('ricariche_q4').delete().eq('id',r.id);if(error)message('Errore eliminazione: '+errorString(error),true);else await load()};td.append(btn);tr.append(td);tb.append(tr)}$('count').textContent=rows.length;$('sumKwh').textContent=fmt(k);$('sumEuro').textContent=fmt(c)+' €'}
-function preview(){const a=number($('before').value),b=number($('after').value),rate=number($('rate').value);const ok=[a,b,rate].every(Number.isFinite)&&a>=0&&b>=a&&rate>=0;$('previewKwh').textContent=ok?fmt(b-a,3)+' kWh':'— kWh';$('previewEuro').textContent=ok?fmt((b-a)*rate)+' €':'— €';return ok}
-function reset(){ $('chargeform').reset();$('date').value=iso();preview()}
-$('clear').onclick=reset;['before','after','rate'].forEach(x=>$(x).addEventListener('input',preview));
-$('chargeform').onsubmit=async e=>{e.preventDefault();if(waiting)return;const a=number($('before').value),b=number($('after').value),p=number($('rate').value),km=Number($('km').value);if(!preview()||!Number.isSafeInteger(km)||km<0){message('Controlla km, letture e prezzo.',true);return}waiting=true;$('save').disabled=true;try{const {error}=await db.from('ricariche_q4').insert({data:$('date').value,km_auto:km,contatore_prima:a,contatore_dopo:b,prezzo_kwh:p});if(error)throw error;reset();await load();message('✅ Ricarica salvata online e condivisa!')}catch(err){message('Salvataggio non riuscito: '+errorString(err)+'. Controlla l’autorizzazione utente.',true)}finally{waiting=false;$('save').disabled=false}};
+let db,session=null,rows=[],recovery=false;
+const cash = amount => fmt(amount) + ' €';
+const cents = amount => Math.round(Number(amount) * 100);
+const day = value => value.split('-').reverse().join('/');
+const ids = {casa:'chargeform', colonnina:'publicForm', rimborso:'refundForm'};
+const notices = {casa:'homeStatus', colonnina:'publicStatus', rimborso:'refundStatus'};
+const busy = new Set();
+let snapshot = null, refundQuote = null, generation = 0, owner = null;
+function note(type, text, error=false) {
+  const el = $(notices[type]);
+  el.textContent = text;
+  el.classList.toggle('bad', error);
+}
+function message(str, err=false) {
+  $('status').textContent=str;
+  $('status').className='notice'+(err?' error':'');
+}
+function errorString(error) { return error?.message || String(error); }
+function userKey(type) { return 'q4:v2:' + session.user.id + ':' + type; }
+const pending = new Map();
+function readIntent(type) {
+  const key = userKey(type);
+  try { return JSON.parse(localStorage.getItem(key)) || pending.get(key); }
+  catch { return pending.get(key); }
+}
+function storeIntent(type, value) {
+  const key=userKey(type);
+  if (value) pending.set(key,value); else pending.delete(key);
+  try { if(value) localStorage.setItem(key,JSON.stringify(value)); else localStorage.removeItem(key); } catch {}
+}
+function decimalPlaces(value, places) {
+  const text = value.trim().replace(',', '.');
+  if (!new RegExp('^\\d+(?:\\.\\d{1,'+places+'})?$').test(text)) return NaN;
+  return Number(text);
+}
+function totals(movements) {
+  let home=0, outside=0, paid=0;
+  for(const r of movements) {
+    const amount=cents(r.totale_euro);
+    if(r.tipo==='rimborso') paid+=amount;
+    else if(r.tipo==='casa') home+=amount;
+    else outside+=amount;
+  }
+  return {home,outside,paid,due:home-paid};
+}
+function show() {
+  const signed=!!session?.user, active=signed&&!recovery;
+  $('authbox').classList.toggle('hide',active);
+  $('app').classList.toggle('hide',!active);
+  $('loginform').classList.toggle('hide',recovery);
+  $('setpassform').classList.toggle('hide',!recovery);
+  $('auth-title').textContent=recovery?'Imposta password':'Accedi';
+  $('useremail').textContent=session?.user?.email||'';
+  const next=active ? session.user.id : null;
+  if(owner!==next) {
+    generation++;
+    owner=next; rows=[]; snapshot=null; refundQuote=null;
+    reset(); $('publicForm').reset(); $('refundForm').reset();
+    $('publicForm').hidden=true; $('refundForm').hidden=true;
+    $('openPublic').hidden=false; $('filter').value='tutte';
+    document.dispatchEvent(new Event('q4-session-change'));
+    for(const type of Object.keys(ids)) note(type,'');
+    render();
+    if(active) restoreIntents();
+  }
+  if(active) setTimeout(()=>load(),0);
+}
+async function load() {
+  if(!session||recovery)return false;
+  const ticket=++generation;
+  try {
+    const movements=[];
+    for(let start=0;;start+=500) {
+      const {data,error}=await db.from('q4_movimenti').select('*')
+        .order('data',{ascending:false}).order('created_at',{ascending:false})
+        .order('id').order('tipo').range(start,start+499);
+      if(ticket!==generation)return false;
+      if(error)throw error;
+      movements.push(...data);
+      if(data.length<500)break;
+    }
+    rows=movements;
+    snapshot=totals(rows);
+    for (const type of Object.keys(ids)) {
+      const saved=readIntent(type);
+      if(saved && !busy.has(type) && rows.some(r=>r.tipo===type && r.id===saved.id)) {
+        storeIntent(type,null); finish(type); note(type,'Salvataggio confermato nello storico.');
+      }
+    }
+    render(); message('Storico condiviso aggiornato.'); return true;
+  } catch(error) {
+    if(ticket===generation) message('Aggiornamento dello storico non riuscito. '+errorString(error),true);
+    return false;
+  }
+}
+function cell(tr,text,cls) {
+  const td=document.createElement('td');
+  td.textContent=text;
+  if(cls)td.className=cls;
+  tr.append(td);return td;
+}
+function render() {
+  const total=snapshot;
+  for(const [id,value] of Object.entries({due:Math.max(0,total?.due||0),homeCost:total?.home,
+    publicCost:total?.outside,paid:total?.paid,sumEuro:(total?.home||0)+(total?.outside||0)})) {
+    $(id).textContent=total?cash(value/100):'—';
+  }
+  $('credit').hidden=!(total?.due<0);
+  if(total?.due<0)$('credit').textContent='Credito di Francesca: '+cash(-total.due/100);
+  $('openRefund').disabled=!total||total.due<=0||!$('refundForm').hidden;
+  const tb=$('history'), list=$('payments'), filter=$('filter').value;
+  tb.replaceChildren(); list.replaceChildren();
+  let count=0,kwh=0,nPaid=0;
+  for(const r of rows) {
+    if(r.tipo==='rimborso') {
+      const li=document.createElement('li'),time=document.createElement('time');
+      time.dateTime=r.data;time.textContent=day(r.data);
+      li.append(time, cash(r.totale_euro));list.append(li);nPaid++;continue;
+    }
+    if(filter!=='tutte' && r.tipo!==filter)continue;
+    count++;kwh+=Number(r.totale_kwh);
+    const home=r.tipo==='casa', tr=document.createElement('tr');
+    cell(tr,day(r.data));
+    const place=cell(tr,home?'Casa':'Colonnina · '+r.nome,'place');
+    if(!home){const address=document.createElement('small');address.textContent=r.localita;place.append(address);}
+    for(const v of [r.km_auto,home?fmt(r.contatore_prima):'—',home?fmt(r.contatore_dopo):'—',fmt(r.totale_kwh,3),fmt(r.prezzo_kwh,4),cash(r.totale_euro)])cell(tr,v);
+    const btn=document.createElement('button');
+    btn.className='danger sm';btn.textContent='Elimina';
+    btn.onclick=async()=>{
+      if(!confirm('Eliminare la ricarica del '+day(r.data)+' da '+cash(r.totale_euro)+' dallo storico condiviso?'))return;
+      btn.disabled=true;
+      try {
+        const {error}=await db.from(home?'ricariche_q4':'ricariche_pubbliche_q4').delete().eq('id',r.id);
+        if(error)throw error;
+        await load();
+      }catch(e){message('Eliminazione non riuscita. '+errorString(e),true);}
+      finally{btn.disabled=false;}
+    };
+    cell(tr,'').append(btn);tb.append(tr);
+  }
+  $('historyCount').textContent=total ? (count ? count+' ricariche · '+fmt(kwh,3)+' kWh' : 'Nessuna ricarica per questo filtro.') : 'Caricamento dello storico…';
+  if(!nPaid) {const li=document.createElement('li');li.textContent=total?'Nessun rimborso registrato.':'Caricamento…';list.append(li);}
+}
+function preview() {
+  const a=number($('before').value),b=number($('after').value),rate=number($('rate').value);
+  const ok=[a,b,rate].every(Number.isFinite)&&a>=0&&b>=a&&rate>=0;
+  $('previewKwh').textContent=ok?fmt(b-a,3)+' kWh':'— kWh';
+  $('previewEuro').textContent=ok?cash((b-a)*rate):'— €';return ok;
+}
+function previewPublic() {
+  const k=decimalPlaces($('publicKwh').value,3),e=decimalPlaces($('publicEuro').value,2);
+  $('avg').textContent=Number.isFinite(e)&&k>0?fmt(e/k,4)+' €/kWh':'—';
+}
+function reset(){ $('chargeform').reset();$('date').value=iso();preview(); }
+function finish(type) {
+  if(type==='casa')reset();
+  if(type==='colonnina'){ $('publicForm').reset();$('publicForm').hidden=true;$('openPublic').hidden=false;previewPublic(); }
+  if(type==='rimborso'){ $('refundForm').reset();$('refundForm').hidden=true;refundQuote=null; }
+}
+const localityCache=new Map();
+let chosenPlace=0, lastLookup=0;
+async function completeLocality(place,ticket) {
+  const key=place.lat.toFixed(5)+','+place.lon.toFixed(5);
+  let locality=localityCache.get(key);
+  if(!locality) {
+    if(Date.now()-lastLookup<1100)return;
+    lastLookup=Date.now();
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),4000);
+    try {
+      const url=new window.URL('https://nominatim.openstreetmap.org/reverse');
+      url.search=new URLSearchParams({format:'jsonv2',lat:place.lat,lon:place.lon,zoom:'14','accept-language':'it'});
+      const response=await fetch(url,{signal:controller.signal});
+      if(!response.ok)return;
+      const a=(await response.json()).address||{};
+      locality=a.city||a.town||a.village||a.municipality||a.hamlet;
+      if(!locality)return;
+      localityCache.set(key,locality);
+    }catch{return;}finally{clearTimeout(timeout);}
+  }
+  if(ticket!==chosenPlace||$('publicForm').hidden||busy.has('colonnina')||$('town').value!==place.address)return;
+  $('town').value=place.address===key.replace(',',', ')?locality:place.address+', '+locality;
+}
+function startPublic(place) {
+  if(busy.has('colonnina'))return;
+  $('publicForm').hidden=false;$('openPublic').hidden=true;
+  if(!$('publicDate').value)$('publicDate').value=iso();
+  const ticket=++chosenPlace;
+  if(place){$('stationName').value=place.name;$('town').value=place.address;if(!place.hasTown)completeLocality(place,ticket);}
+  note('colonnina','');$('publicSection').scrollIntoView({block:'start'});
+  $(place?'publicKm':'stationName').focus();
+}
+function startRefund(balance) {
+  refundQuote=balance;
+  $('refundForm').hidden=false;$('openRefund').disabled=true;
+  $('refundDate').value=iso();$('refundEuro').value=(balance/100).toFixed(2).replace('.',',');
+  $('refundHint').textContent='Saldo da rimborsare: '+cash(balance/100)+'. Puoi inserire anche un importo parziale.';
+  note('rimborso','');$('refundEuro').focus();
+}
+function restoreIntents() {
+  for(const type of Object.keys(ids)) {
+    const saved=readIntent(type);
+    if(!saved?.data)continue;
+    const p=saved.data;
+    if(type==='casa') {
+      for(const [id,key] of Object.entries({date:'data',km:'km_auto',before:'contatore_prima',after:'contatore_dopo',rate:'prezzo_kwh'}))$(id).value=p[key];
+      preview();
+    } else if(type==='colonnina') {
+      $('publicForm').hidden=false;$('openPublic').hidden=true;
+      for(const [id,key] of Object.entries({publicDate:'data',publicKm:'km_auto',stationName:'nome',town:'localita',publicKwh:'totale_kwh',publicEuro:'totale_euro'}))$(id).value=p[key];
+      previewPublic();
+    } else {
+      startRefund(cents(saved.quote));$('refundDate').value=p.data;$('refundEuro').value=p.importo;
+    }
+    note(type,'Verifica del salvataggio precedente in corso.');
+  }
+}
+const submitId={casa:'save',colonnina:'savePublic',rimborso:'saveRefund'};
+async function saveMovement(type, data) {
+  if(busy.has(type)||!session)return;
+  const user=session.user.id, last=readIntent(type);
+  const quote=type==='rimborso'?refundQuote/100:null;
+  const same=last && JSON.stringify(last.data)===JSON.stringify(data) && last.quote===quote;
+  if(last && !same) {
+    note(type,'Prima di modificare i dati, aggiorna lo storico per verificare il tentativo precedente.',true);
+    if(!await load())return;
+    if(readIntent(type))storeIntent(type,null);
+    return;
+  }
+  const intent=same?last:{id:crypto.randomUUID(),data,quote};
+  storeIntent(type,intent);
+  busy.add(type); $(submitId[type]).disabled=true;
+  const fieldset=$(ids[type]).querySelector('fieldset');
+  if(fieldset)fieldset.disabled=true;
+  try {
+    const result=type==='rimborso'
+      ? await db.rpc('registra_rimborso_q4',{p_id:intent.id,p_data:data.data,p_importo:data.importo,p_saldo:intent.quote})
+      : await db.from(type==='casa'?'ricariche_q4':'ricariche_pubbliche_q4').upsert({id:intent.id,...data},{onConflict:'id',ignoreDuplicates:true});
+    if(session?.user?.id!==user)return;
+    if(result.error)throw result.error;
+    storeIntent(type,null);finish(type);
+    note(type,type==='rimborso'?'Rimborso registrato.':'Ricarica salvata nello storico condiviso.');
+    if(type==='rimborso')snapshot=null;
+    await load();
+  }catch(e){
+    if(session?.user?.id!==user)return;
+    if(e.code && !['', '57014'].includes(e.code)) {
+      storeIntent(type,null);
+      if(type==='rimborso' && e.code==='P0001'){
+        finish(type);await load();
+      }
+    }
+    note(type,'Salvataggio non confermato. '+errorString(e),true);
+  }finally{
+    busy.delete(type);$(submitId[type]).disabled=false;if(fieldset)fieldset.disabled=false;render();
+  }
+}
+$('filter').onchange=render;
+$('openPublic').onclick=()=>startPublic();
+document.addEventListener('q4-station',event=>startPublic(event.detail));
+$('closePublic').onclick=()=>{finish('colonnina');note('colonnina','');};
+$('closeRefund').onclick=()=>{finish('rimborso');note('rimborso','');render();};
+$('openRefund').onclick=()=>{if(snapshot?.due>0)startRefund(snapshot.due);};
+$('clear').onclick=reset;
+['before','after','rate'].forEach(id=>$(id).addEventListener('input',preview));
+['publicKwh','publicEuro'].forEach(id=>$(id).addEventListener('input',previewPublic));
+$('chargeform').onsubmit=e=>{
+  e.preventDefault();
+  const km=number($('km').value);
+  if(!preview()||!Number.isSafeInteger(km)||km<0||km>2147483647)return note('casa','Controlla km, letture e prezzo.',true);
+  saveMovement('casa',{data:$('date').value,km_auto:km,contatore_prima:number($('before').value),contatore_dopo:number($('after').value),prezzo_kwh:number($('rate').value)});
+};
+$('publicForm').onsubmit=e=>{
+  e.preventDefault();
+  const km=number($('publicKm').value), k=decimalPlaces($('publicKwh').value,3), amount=decimalPlaces($('publicEuro').value,2);
+  const name=$('stationName').value.trim(), town=$('town').value.trim();
+  if(!name||!town||!Number.isInteger(km)||km<0||km>2147483647||!(k>0&&k<1e9)||!(amount>=0&&amount<1e10))return note('colonnina','Controlla località, km, kWh (massimo tre decimali) e importo (massimo due decimali).',true);
+  saveMovement('colonnina',{data:$('publicDate').value,km_auto:km,nome:name,localita:town,totale_kwh:k,totale_euro:amount});
+};
+$('refundForm').onsubmit=e=>{
+  e.preventDefault();
+  const amount=decimalPlaces($('refundEuro').value,2);
+  if(!(amount>0)||cents(amount)>refundQuote)return note('rimborso','Inserisci un importo positivo, entro il saldo, con al massimo due decimali.',true);
+  saveMovement('rimborso',{data:$('refundDate').value,importo:amount});
+};
+$('refresh').onclick=load;
+document.addEventListener('visibilitychange',()=>{if(!document.hidden && session)load();});
+window.addEventListener('online',()=>{if(session)load();});
+setInterval(()=>{if(session&&!document.hidden&&!recovery)load();},60000);
+$('export').onclick=()=>{
+  const cols=['Data','Tipo','Km auto','Contatore prima (kWh)','Contatore dopo (kWh)','kWh','Prezzo EUR/kWh','Totale EUR','Colonnina','Località'];
+  const lines=[cols,...rows.map(r=>[r.data,r.tipo,r.km_auto,r.contatore_prima,r.contatore_dopo,r.totale_kwh,r.prezzo_kwh,r.totale_euro,r.nome,r.localita])].map(row=>row.map(value=>{
+    const s=String(value??'');return '"'+(/^[\s]*[=+@-]/.test(s)?"'":'')+s.replace(/"/g,'""')+'"';
+  }).join(';'));
+  const url=window.URL.createObjectURL(new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download='ricariche-q4.csv';a.click();setTimeout(()=>window.URL.revokeObjectURL(url),2000);
+};
 $('loginform').onsubmit=async e=>{e.preventDefault();$('loginBtn').disabled=true;const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('loginBtn').disabled=false;if(error)message('Accesso non riuscito: '+errorString(error),true)};
 $('forgot').onclick=async()=>{const email=$('email').value.trim();if(!email){message('Inserisci prima il tuo indirizzo email.',true);return}const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:location.origin+location.pathname});message(error?'Invio non riuscito: '+errorString(error):'Controlla la tua email per impostare la password.',!!error)};
 $('setpassform').onsubmit=async e=>{e.preventDefault();const password=$('newpass').value;if(password.length<8){message('La password deve avere almeno 8 caratteri.',true);return}const {error}=await db.auth.updateUser({password});if(error){message('Errore impostazione password: '+errorString(error),true);return}recovery=false;history.replaceState({},'',location.pathname);show();message('✅ Password impostata. Accesso effettuato.')};
 $('logout').onclick=async()=>{const {error}=await db.auth.signOut();if(error)message(errorString(error),true)};
-$('refresh').onclick=load;
-$('export').onclick=()=>{const cols=['Data','Km auto','Contatore prima (kWh)','Contatore dopo (kWh)','kWh','Prezzo EUR/kWh','Totale EUR'];const lines=[cols,...rows.map(r=>[r.data,r.km_auto,r.contatore_prima,r.contatore_dopo,r.totale_kwh,r.prezzo_kwh,r.totale_euro])].map(a=>a.map(x=>'"'+String(x??'').replace(/"/g,'""')+'"').join(';'));const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ricariche-q4.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)};
 reset();if(!window.supabase?.createClient){message('Impossibile caricare Supabase: controlla la connessione Internet.',true);return}db=window.supabase.createClient(URL,KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||event==='USER_UPDATED'&&recovery){recovery=true;show();message('Scegli una password per completare l’accesso.');return}if(event==='SIGNED_IN'&&location.hash.includes('type=invite')){recovery=true;show();message('Invito confermato. Imposta una password per il tuo account.');return}if(event==='SIGNED_OUT'){recovery=false;rows=[];show();message('Accedi con il tuo account.');return}show()});
 (async()=>{const {data,error}=await db.auth.getSession();session=data?.session||null;if(error)message('Errore sessione: '+errorString(error),true);else if(!session)message('Accedi con l’email che hai invitato su Supabase.');show()})();
@@ -121,31 +434,54 @@ db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||
     }).sort((first, second) => first.distance - second.distance);
   }
 
-  async function findStations(lat, lon, radius) {
-    const query = '[out:json][timeout:20];'
-      + 'nwr(around:' + radius * 1000 + ',' + lat + ',' + lon + ')'
-      + '["amenity"="charging_station"]["socket:type2_combo"]["socket:type2_combo:output"];out center;';
-    for (const endpoint of endpoints) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 22000);
-      try {
-        const url = new URL(endpoint);
-        url.searchParams.set('data', query);
-        const response = await fetch(url, { signal: controller.signal, referrerPolicy: 'no-referrer' });
-        if (!response.ok) continue;
-        const data = await response.json();
-        if (Array.isArray(data.elements) && !data.remark) {
-          return matchingStations(data.elements, lat, lon, radius);
-        }
-      } catch {
-        // Try the other endpoint when this one is unavailable.
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-    throw new Error('Il catalogo delle colonnine non risponde. Riprova tra poco.');
+  const cancel = document.getElementById('q4-cancel');
+  const maps = document.getElementById('q4-maps');
+  let active = null;
+  function mapFallback(coords) {
+    const q=encodeURIComponent('colonnine ricarica rapida CCS2');
+    maps.href='https://maps.apple.com/?q='+q+(coords?'&sll='+coords.latitude+','+coords.longitude:'');
+    maps.hidden=false;
+    document.getElementById('q4-map-note').hidden=false;
   }
-
+  function finishSearch(run, text) {
+    if(active!==run)return;
+    active=null;clearTimeout(run.timer);run.controller.abort();
+    button.disabled=false;radiusField.disabled=false;cancel.hidden=true;
+    status.textContent=text;
+  }
+  function bounded(signal, milliseconds, operation) {
+    return new Promise((resolve,reject)=>{
+      const controller=new AbortController();
+      let done=false;
+      const stop=(callback,value)=>{
+        if(done)return;
+        done=true;clearTimeout(timer);signal.removeEventListener('abort',abort);
+        controller.abort();callback(value);
+      };
+      const abort=()=>stop(reject,new Error('Ricerca annullata.'));
+      const timer=setTimeout(()=>stop(reject,new Error('Tempo di attesa scaduto.')),milliseconds);
+      if(signal.aborted){abort();return;}
+      signal.addEventListener('abort',abort,{once:true});
+      Promise.resolve().then(()=>operation(controller.signal)).then(value=>stop(resolve,value),error=>stop(reject,error));
+    });
+  }
+  async function findStations(lat,lon,radius,signal) {
+    const query='[out:json][timeout:8];nwr(around:'+radius*1000+','+lat+','+lon+')'
+      +'["amenity"="charging_station"]["socket:type2_combo"]["socket:type2_combo:output"];out center;';
+    for(const endpoint of endpoints) {
+      if(signal.aborted)throw new Error('Ricerca annullata.');
+      try {
+        const data=await bounded(signal,8500,async requestSignal=>{
+          const url=new URL(endpoint);url.searchParams.set('data',query);
+          const response=await fetch(url,{signal:requestSignal,referrerPolicy:'no-referrer'});
+          if(!response.ok)throw new Error('Catalogo non disponibile.');
+          return response.json();
+        });
+        if(!data.remark&&Array.isArray(data.elements))return matchingStations(data.elements,lat,lon,radius);
+      }catch(error){if(signal.aborted)throw error;}
+    }
+    throw new Error('Il catalogo delle colonnine non risponde. Puoi riprovare o aprire Mappe.');
+  }
   function append(parent, tag, label) {
     const element = document.createElement(tag);
     element.textContent = label;
@@ -163,7 +499,7 @@ db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||
   function renderStation(station) {
     const { tags, power, distance, lat, lon } = station;
     const name = tags.name || tags.operator || tags.brand || 'Colonnina CCS Combo 2';
-    const address = [[tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '), tags['addr:city']].filter(Boolean).join(', ');
+    const address = [[tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '), (tags['addr:city'] || tags['addr:town'] || tags['addr:village'] || tags['addr:place'])].filter(Boolean).join(', ');
     const item = append(results, 'li', '');
     append(item, 'strong', name);
     append(item, 'p', decimal.format(power) + ' kW · ' + decimal.format(distance) + ' km in linea d’aria');
@@ -175,6 +511,13 @@ db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||
       ? 'https://maps.apple.com/?daddr=' + destination + '&dirflg=d'
       : 'https://www.google.com/maps/dir/?api=1&destination=' + destination + '&travelmode=driving&dir_action=navigate';
     link(item, 'Avvia navigazione', navigation);
+    const record=append(item,'button','Registra ricarica qui');
+    record.type='button';
+    record.onclick=()=>{
+      const coord=lat.toFixed(5)+', '+lon.toFixed(5);
+      const place={name,address:address||coord,lat,lon,hasTown:!!(tags['addr:city']||tags['addr:town']||tags['addr:village']||tags['addr:place'])};
+      document.dispatchEvent(new CustomEvent('q4-station',{detail:place}));
+    };
     const comparison = append(item, 'details', '');
     append(comparison, 'summary', 'Confronta prezzi');
     append(comparison, 'p', 'Cerca la stessa colonnina nel comparatore e verifica la tariffa finale nell’app con cui vuoi ricaricare.');
@@ -182,38 +525,48 @@ db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||
     link(comparison, 'Apri Chargeprice', 'https://www.chargeprice.app/');
   }
 
-  form.addEventListener('submit', async event => {
+  cancel.onclick=()=>{if(active)finishSearch(active,'Ricerca annullata.');};
+  function clearSearch(){
+    if(active)finishSearch(active,'');
+    results.replaceChildren();status.textContent='';maps.hidden=true;
+    maps.removeAttribute('href');document.getElementById('q4-map-note').hidden=true;
+  }
+  document.addEventListener('q4-session-change',clearSearch);
+  function checkDeadline(){
+    if(active && Date.now()>=active.until)finishSearch(active,'Tempo di ricerca scaduto. Puoi riprovare o aprire Mappe.');
+  }
+  document.addEventListener('visibilitychange',checkDeadline);
+  window.addEventListener('pageshow',checkDeadline);
+  form.addEventListener('submit',async event=>{
     event.preventDefault();
-    if (button.disabled) return;
-    const radius = Number(radiusField.value);
-    results.replaceChildren();
-    if (!navigator.geolocation || !window.isSecureContext) {
-      status.textContent = 'La posizione è disponibile aprendo l’app in HTTPS su un browser compatibile.';
-      return;
+    if(active)return;
+    const radius=Number(radiusField.value);
+    results.replaceChildren();mapFallback();
+    if(!navigator.geolocation||!window.isSecureContext){
+      status.textContent='GPS non disponibile in questo browser. Puoi cercare su Mappe.';return;
     }
-    button.disabled = true;
-    radiusField.disabled = true;
-    status.textContent = 'Rilevamento della posizione…';
-    try {
-      const position = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 60000 });
-      });
-      const { latitude, longitude } = position.coords;
-      status.textContent = 'Ricerca entro ' + radius + ' km…';
-      const stations = await findStations(latitude, longitude, radius);
+    const run={controller:new AbortController(),until:Date.now()+28000};
+    active=run;button.disabled=true;radiusField.disabled=true;cancel.hidden=false;
+    run.timer=setTimeout(checkDeadline,28010);
+    status.textContent='Rilevamento della posizione…';
+    let positioned=false;
+    try{
+      const position=await bounded(run.controller.signal,10000,()=>new Promise((resolve,reject)=>{
+        navigator.geolocation.getCurrentPosition(resolve,reject,{timeout:9000,maximumAge:60000});
+      }));
+      if(active!==run)return;
+      const {latitude,longitude}=position.coords;positioned=true;mapFallback(position.coords);
+      status.textContent='Ricerca entro '+radius+' km…';
+      const stations=await findStations(latitude,longitude,radius,run.controller.signal);
+      if(active!==run)return;
       stations.forEach(renderStation);
-      status.textContent = stations.length
-        ? stations.length + (stations.length === 1 ? ' colonnina trovata' : ' colonnine trovate') + ' entro ' + radius + ' km.'
-        : 'Nessuna colonnina CCS Combo 2 da almeno 50 kW mappata entro ' + radius + ' km.';
-    } catch (error) {
-      status.textContent = error.code === 1
-        ? 'Accesso alla posizione negato. Abilitalo nelle impostazioni del sito e riprova.'
-        : error.code === 2 || error.code === 3
-          ? 'Posizione non rilevata. Controlla che la localizzazione sia attiva e riprova.'
-          : 'Il catalogo delle colonnine non risponde. Riprova tra poco.';
-    } finally {
-      button.disabled = false;
-      radiusField.disabled = false;
+      finishSearch(run,stations.length ? stations.length+(stations.length===1?' colonnina trovata':' colonnine trovate')+' entro '+radius+' km.'
+        :'Nessuna colonnina CCS2 da almeno 50 kW mappata entro '+radius+' km.');
+    }catch(error){
+      if(active!==run)return;
+      const text=positioned?error.message:error.code===1?'Accesso alla posizione negato. Abilita la localizzazione o apri Mappe.'
+        :'Posizione non rilevata in tempo. Controlla la localizzazione o apri Mappe.';
+      finishSearch(run,text);
     }
   });
 })();
