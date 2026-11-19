@@ -5,6 +5,13 @@
 <meta name="theme-color" content="#103448"><title>Ricariche Q4</title>
 <style>
 :root{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#18313e;background:#f1f6f8}*{box-sizing:border-box}body{margin:0}header{background:#103448;color:white;padding:29px max(20px,env(safe-area-inset-left));}header h1{font-size:30px;margin:0 0 7px}header p{margin:0;color:#c5dce4}.wrap{max-width:850px;margin:24px auto;padding:0 16px 50px}.card{background:white;border:1px solid #d6e5eb;border-radius:20px;padding:21px;margin:20px 0;box-shadow:0 3px 14px #1b344009}h2{margin:0 0 19px;font-size:24px}label{font-size:15px;font-weight:650;display:block;margin:15px 0 7px}input{width:100%;font-size:18px;border:1.5px solid #b6ccd6;border-radius:12px;padding:14px;background:white;color:#18313e;min-height:50px}input:focus{outline:2px solid #61a9c6}button{background:#176f91;color:white;border:0;border-radius:12px;padding:13px 17px;cursor:pointer;font-size:16px;font-weight:700}button:disabled{opacity:.5;cursor:wait}.secondary{background:#e5eef2;color:#18313e}.danger{background:#fff0ef;color:#97382e}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}.row>*{flex:1}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}.metric{border-radius:13px;background:#eaf2f5;padding:15px}.metric small{display:block;color:#597582;margin-bottom:6px}.metric strong{font-size:25px}.notice{border-radius:12px;background:#e5f4e8;color:#235f3d;padding:14px;margin-bottom:16px}.error{background:#ffefee;color:#922e25}.muted{color:#637986;font-size:14px}.hide{display:none!important}table{border-collapse:collapse;width:100%;min-width:720px}th,td{font-size:14px;padding:10px;border-bottom:1px solid #e5edf1;text-align:right;white-space:nowrap}th:first-child,td:first-child{text-align:left}.scroll{overflow:auto}.pill{border-radius:50px;background:#e5f4e8;color:#235f3d;padding:6px 10px;font-size:13px;font-weight:600}.right{margin-left:auto}.sm{font-size:13px;padding:7px 10px}.total{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.total .metric strong{font-size:22px}.footer{font-size:12px;color:#70848f}#status{white-space:pre-wrap}#useremail{overflow-wrap:anywhere}@media(max-width:500px){.total{grid-template-columns:1fr 1fr}.total .metric:last-child{grid-column:1/-1}.two{gap:8px}header h1{font-size:28px}.card{padding:17px}.row>*{min-width:110px}}
+#q4-fast-radius{width:100%;min-height:44px;font:inherit;font-size:16px;color:inherit;background:white;border:1px solid #a9bbc4;border-radius:10px;padding:8px 12px;margin-bottom:10px}
+#q4-fast-results{list-style:none;margin:0;padding:0}
+#q4-fast-results li{border-top:1px solid #d9e5ea;padding:14px 0;overflow-wrap:anywhere}
+#q4-fast-results p{margin:6px 0}
+#q4-fast-results a,#q4-fast-results summary{display:inline-flex;align-items:center;min-height:44px;margin-right:12px;color:#103448;font-weight:600}
+#q4-fast-results summary{display:list-item;width:fit-content;line-height:44px;cursor:pointer}
+#q4-fast-results summary:focus-visible,#q4-fast-results a:focus-visible{outline:2px solid #103448;outline-offset:2px}
 </style>
 </head>
 <body><header><h1>🔋 Ricariche Q4</h1><p>Registro condiviso delle ricariche di Francesca</p></header>
@@ -15,6 +22,25 @@
 <form id="setpassform" class="hide"><p>Imposta una password nuova per accedere all'app.</p><label for="newpass">Nuova password (almeno 8 caratteri)</label><input id="newpass" type="password" minlength="8" required autocomplete="new-password"><button type="submit" style="margin-top:15px">Salva password</button></form>
 </section>
 <div id="app" class="hide"><section class="card"><div class="row"><div><strong>Accesso effettuato</strong><div class="muted" id="useremail"></div></div><button id="logout" class="secondary right">Esci</button></div></section>
+<section id="q4-fast" class="card" aria-labelledby="q4-fast-title">
+  <h2 id="q4-fast-title">Colonnine rapide vicino a me</h2>
+  <p class="muted">DC · CCS Combo 2 · almeno 50 kW</p>
+  <form id="q4-fast-form">
+    <label for="q4-fast-radius">Raggio di ricerca</label>
+    <select id="q4-fast-radius">
+      <option value="10">10 km</option>
+      <option value="20" selected>20 km</option>
+      <option value="30">30 km</option>
+      <option value="50">50 km</option>
+      <option value="100">100 km</option>
+    </select>
+    <button type="submit">Cerca con GPS</button>
+  </form>
+  <p class="muted">La posizione viene usata per cercare nel catalogo OpenStreetMap tramite Overpass.</p>
+  <p id="q4-fast-status" role="status"></p>
+  <ol id="q4-fast-results"></ol>
+  <small class="muted">Dati © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>. Disponibilità in tempo reale da verificare nell’app di ricarica.</small>
+</section>
 <section class="card"><h2>Nuova ricarica</h2><form id="chargeform"><label for="date">Data</label><input id="date" type="date" required><label for="km">Km attuali dell'auto (all'inizio della ricarica)</label><input id="km" inputmode="numeric" type="number" min="0" step="1" required placeholder="Es. 485">
 <div class="two"><div><label for="before">Contatore prima (kWh)</label><input id="before" inputmode="decimal" type="text" required placeholder="772,28"></div><div><label for="after">Contatore dopo (kWh)</label><input id="after" inputmode="decimal" type="text" required placeholder="777,28"></div></div>
 <label for="rate">Prezzo energia (€/kWh) — lo decidi tu</label><input id="rate" inputmode="decimal" type="text" required placeholder="Es. 0,32"><div class="metrics"><div class="metric"><small>Totale energia</small><strong id="previewKwh">— kWh</strong></div><div class="metric"><small>Costo ricarica</small><strong id="previewEuro">— €</strong></div></div>
@@ -47,4 +73,149 @@ reset();if(!window.supabase?.createClient){message('Impossibile caricare Supabas
 db.auth.onAuthStateChange((event,s)=>{session=s;if(event==='PASSWORD_RECOVERY'||event==='USER_UPDATED'&&recovery){recovery=true;show();message('Scegli una password per completare l’accesso.');return}if(event==='SIGNED_IN'&&location.hash.includes('type=invite')){recovery=true;show();message('Invito confermato. Imposta una password per il tuo account.');return}if(event==='SIGNED_OUT'){recovery=false;rows=[];show();message('Accedi con il tuo account.');return}show()});
 (async()=>{const {data,error}=await db.auth.getSession();session=data?.session||null;if(error)message('Errore sessione: '+errorString(error),true);else if(!session)message('Accedi con l’email che hai invitato su Supabase.');show()})();
 })();
-</script></body></html>
+</script>
+<script>
+(() => {
+  'use strict';
+
+  const form = document.getElementById('q4-fast-form');
+  const button = form.querySelector('button');
+  const radiusField = document.getElementById('q4-fast-radius');
+  const status = document.getElementById('q4-fast-status');
+  const results = document.getElementById('q4-fast-results');
+  const decimal = new Intl.NumberFormat('it-IT', { maximumFractionDigits: 1 });
+  const endpoints = [
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass-api.de/api/interpreter'
+  ];
+
+  function socketPower(value = '') {
+    return Math.max(0, ...String(value).split(';').map(part => {
+      const match = part.trim().match(/^(\d+(?:[.,]\d+)?)\s*(kW|W)$/i);
+      if (!match) return 0;
+      const power = Number(match[1].replace(',', '.'));
+      return match[2].toLowerCase() === 'w' ? power / 1000 : power;
+    }));
+  }
+
+  function distanceKm(lat, lon, stationLat, stationLon) {
+    const radians = Math.PI / 180;
+    const a = Math.sin((stationLat - lat) * radians / 2) ** 2
+      + Math.cos(lat * radians) * Math.cos(stationLat * radians)
+      * Math.sin((stationLon - lon) * radians / 2) ** 2;
+    return 12742 * Math.asin(Math.sqrt(Math.min(1, a)));
+  }
+
+  function matchingStations(elements, lat, lon, radius) {
+    return elements.flatMap(element => {
+      const tags = element.tags || {};
+      const sockets = String(tags['socket:type2_combo'] || '');
+      const hasSocket = sockets === 'yes' || sockets.split(';').some(count => /^\s*\d+\s*$/.test(count) && Number(count) > 0);
+      const power = socketPower(tags['socket:type2_combo:output']);
+      const location = element.center || element;
+      if (!hasSocket || power < 50 || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return [];
+      if (['private', 'no'].includes(tags.access)) return [];
+      const distance = distanceKm(lat, lon, location.lat, location.lon);
+      if (distance > radius) return [];
+      return [{ tags, power, distance, lat: location.lat, lon: location.lon }];
+    }).sort((first, second) => first.distance - second.distance);
+  }
+
+  async function findStations(lat, lon, radius) {
+    const query = '[out:json][timeout:20];'
+      + 'nwr(around:' + radius * 1000 + ',' + lat + ',' + lon + ')'
+      + '["amenity"="charging_station"]["socket:type2_combo"]["socket:type2_combo:output"];out center;';
+    for (const endpoint of endpoints) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 22000);
+      try {
+        const url = new URL(endpoint);
+        url.searchParams.set('data', query);
+        const response = await fetch(url, { signal: controller.signal, referrerPolicy: 'no-referrer' });
+        if (!response.ok) continue;
+        const data = await response.json();
+        if (Array.isArray(data.elements) && !data.remark) {
+          return matchingStations(data.elements, lat, lon, radius);
+        }
+      } catch {
+        // Try the other endpoint when this one is unavailable.
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+    throw new Error('Il catalogo delle colonnine non risponde. Riprova tra poco.');
+  }
+
+  function append(parent, tag, label) {
+    const element = document.createElement(tag);
+    element.textContent = label;
+    parent.append(element);
+    return element;
+  }
+
+  function link(parent, label, href) {
+    const anchor = append(parent, 'a', label);
+    anchor.href = href;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+  }
+
+  function renderStation(station) {
+    const { tags, power, distance, lat, lon } = station;
+    const name = tags.name || tags.operator || tags.brand || 'Colonnina CCS Combo 2';
+    const address = [[tags['addr:street'], tags['addr:housenumber']].filter(Boolean).join(' '), tags['addr:city']].filter(Boolean).join(', ');
+    const item = append(results, 'li', '');
+    append(item, 'strong', name);
+    append(item, 'p', decimal.format(power) + ' kW · ' + decimal.format(distance) + ' km in linea d’aria');
+    if (address) append(item, 'p', address);
+    const destination = encodeURIComponent(lat + ',' + lon);
+    const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const navigation = isApple
+      ? 'https://maps.apple.com/?daddr=' + destination + '&dirflg=d'
+      : 'https://www.google.com/maps/dir/?api=1&destination=' + destination + '&travelmode=driving&dir_action=navigate';
+    link(item, 'Avvia navigazione', navigation);
+    const comparison = append(item, 'details', '');
+    append(comparison, 'summary', 'Confronta prezzi');
+    append(comparison, 'p', 'Cerca la stessa colonnina nel comparatore e verifica la tariffa finale nell’app con cui vuoi ricaricare.');
+    append(comparison, 'p', 'Riferimento per la ricerca: ' + [name, address, lat.toFixed(5) + ', ' + lon.toFixed(5)].filter(Boolean).join(' · '));
+    link(comparison, 'Apri Chargeprice', 'https://www.chargeprice.app/');
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (button.disabled) return;
+    const radius = Number(radiusField.value);
+    results.replaceChildren();
+    if (!navigator.geolocation || !window.isSecureContext) {
+      status.textContent = 'La posizione è disponibile aprendo l’app in HTTPS su un browser compatibile.';
+      return;
+    }
+    button.disabled = true;
+    radiusField.disabled = true;
+    status.textContent = 'Rilevamento della posizione…';
+    try {
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 12000, maximumAge: 60000 });
+      });
+      const { latitude, longitude } = position.coords;
+      status.textContent = 'Ricerca entro ' + radius + ' km…';
+      const stations = await findStations(latitude, longitude, radius);
+      stations.forEach(renderStation);
+      status.textContent = stations.length
+        ? stations.length + (stations.length === 1 ? ' colonnina trovata' : ' colonnine trovate') + ' entro ' + radius + ' km.'
+        : 'Nessuna colonnina CCS Combo 2 da almeno 50 kW mappata entro ' + radius + ' km.';
+    } catch (error) {
+      status.textContent = error.code === 1
+        ? 'Accesso alla posizione negato. Abilitalo nelle impostazioni del sito e riprova.'
+        : error.code === 2 || error.code === 3
+          ? 'Posizione non rilevata. Controlla che la localizzazione sia attiva e riprova.'
+          : 'Il catalogo delle colonnine non risponde. Riprova tra poco.';
+    } finally {
+      button.disabled = false;
+      radiusField.disabled = false;
+    }
+  });
+})();
+</script>
+</body></html>
